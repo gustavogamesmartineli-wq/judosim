@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JudoSim • Simulador de Virada</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Inter,Arial,sans-serif;background:#0b1020;color:#eef2ff;
+  min-height:100vh;padding:24px;
+}
+.container{max-width:1100px;margin:auto}
+h1{margin:0 0 8px;font-size:clamp(28px,5vw,48px)}
+.sub{color:#aeb9d6;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{
+  background:#121a2e;border:1px solid #263452;border-radius:18px;padding:20px;
+  box-shadow:0 10px 30px #0004
+}
+.card h2{margin-top:0}
+label{display:block;color:#b9c4df;font-size:14px;margin:13px 0 6px}
+input,select{
+  width:100%;padding:12px;border-radius:10px;border:1px solid #344363;
+  background:#0c1325;color:#fff;font-size:15px;outline:none
+}
+input:focus,select:focus{border-color:#6ea8ff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{
+  width:100%;margin-top:20px;padding:15px;border:0;border-radius:12px;
+  background:linear-gradient(135deg,#4f8cff,#7a5cff);color:white;font-weight:800;
+  font-size:16px;cursor:pointer
+}
+button:hover{filter:brightness(1.1)}
+.hidden{display:none}
+.result{margin-top:20px}
+.winner{
+  font-size:28px;font-weight:900;text-align:center;margin:5px 0 16px
+}
+.bar{height:18px;background:#27324c;border-radius:99px;overflow:hidden;display:flex}
+.p1bar{background:#4f8cff;height:100%}.p2bar{background:#ff5577;height:100%}
+.legend{display:flex;justify-content:space-between;margin-top:7px;font-size:14px;color:#cbd4e9}
+.explain{
+  margin-top:18px;line-height:1.65;color:#d8def0;background:#0d1528;
+  border:1px solid #263452;border-radius:14px;padding:16px
+}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
+.stat{background:#0d1528;border-radius:12px;padding:12px;text-align:center}
+.stat b{display:block;font-size:20px;margin-top:4px}
+.note{font-size:12px;color:#8492b2;margin-top:14px;line-height:1.5}
+.animalGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.animal{
+  padding:10px 5px;border:1px solid #33415f;background:#0d1528;
+  border-radius:10px;color:white;cursor:pointer;text-align:center
+}
+.animal.active{border-color:#6ea8ff;background:#162443}
+@media(max-width:750px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.animalGrid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🥋 JudoSim</h1>
+  <div class="sub">Simulador fictício de uma virada no judô usando características físicas e fatores de luta.</div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>👤 Pessoa 1</h2>
+      <div class="row">
+        <div><label>Altura (cm)</label><input id="h1" type="number" min="80" max="250" value="170"></div>
+        <div><label>Peso (kg)</label><input id="w1" type="number" min="20" max="300" value="70"></div>
+      </div>
+      <label>Sexo</label>
+      <select id="s1"><option value="M">Masculino</option><option value="F">Feminino</option></select>
+      <label>Experiência no judô</label>
+      <select id="e1">
+        <option value="0.85">Nenhuma</option>
+        <option value="0.94">Iniciante</option>
+        <option value="1.00" selected>Intermediário</option>
+        <option value="1.08">Avançado</option>
+        <option value="1.15">Competidor</option>
+      </select>
+    </section>
+
+    <section class="card">
+      <h2>👤 Pessoa 2</h2>
+      <label>Tipo de adversário</label>
+      <select id="mode2" onchange="toggleP2()">
+        <option value="custom">Personalizado</option>
+        <option value="andrezitos">Andrezitos</option>
+        <option value="animal">Animal</option>
+      </select>
+
+      <div id="p2custom">
+        <div class="row">
+          <div><label>Altura (cm)</label><input id="h2" type="number" min="80" max="300" value="175"></div>
+          <div><label>Peso (kg)</label><input id="w2" type="number" min="20" max="500" value="75"></div>
+        </div>
+        <label>Sexo</label>
+        <select id="s2"><option value="M">Masculino</option><option value="F">Feminino</option></select>
+      </div>
+
+      <div id="andrezitos" class="hidden">
+        <div class="explain">🧍 <b>Andrezitos</b><br>170 cm • 70 kg • Masculino</div>
+      </div>
+
+      <div id="animalbox" class="hidden">
+        <label>Escolha um animal</label>
+        <div class="animalGrid" id="animals"></div>
+        <div id="animalInfo" class="note"></div>
+      </div>
+
+      <label>Experiência no judô</label>
+      <select id="e2">
+        <option value="0.85">Nenhuma</option>
+        <option value="0.94">Iniciante</option>
+        <option value="1.00" selected>Intermediário</option>
+        <option value="1.08">Avançado</option>
+        <option value="1.15">Competidor</option>
+      </select>
+    </section>
+  </div>
+
+  <button onclick="simulate()">⚡ SIMULAR A VIRADA</button>
+
+  <section id="result" class="card result hidden">
+    <div class="winner" id="winner"></div>
+    <div class="bar"><div id="bar1" class="p1bar"></div><div id="bar2" class="p2bar"></div></div>
+    <div class="legend"><span id="score1"></span><span id="score2"></span></div>
+
+    <div class="stats">
+      <div class="stat">Massa<b id="mass"></b></div>
+      <div class="stat">Alcance/altura<b id="reach"></b></div>
+      <div class="stat">Técnica<b id="tech"></b></div>
+    </div>
+
+    <div class="explain" id="explanation"></div>
+    <div class="note">
+      ⚠️ Isto é uma simulação recreativa. Peso, altura e sexo não permitem determinar
+      com precisão quem venceria uma luta real. Animais também são apenas personagens
+      fictícios do simulador, não recomendações para lutar com eles.
+    </div>
+  </section>
+</div>
+
+<script>
+const animals = {
+  "🐕 Cão grande": [70, 40, "M"], 
+  "🐺 Lobo": [80, 65, "M"],
+  "🦌 Veado": [110, 100, "M"],
+  "🐗 Javali": [100, 90, "M"],
+  "🦘 Canguru": [150, 85, "M"],
+  "🦍 Gorila": [170, 160, "M"],
+  "🐻 Urso": [180, 250, "M"],
+  "🐴 Cavalo": [160, 500, "M"]
+};
+let selectedAnimal = "🐺 Lobo";
+
+const animalGrid = document.getElementById("animals");
+for(const [name, v] of Object.entries(animals)){
+  const b=document.createElement("button");
+  b.type="button"; b.className="animal"; b.textContent=name;
+  b.onclick=()=>{selectedAnimal=name;document.querySelectorAll(".animal").forEach(x=>x.classList.remove("active"));b.classList.add("active");showAnimal()};
+  animalGrid.appendChild(b);
+}
+animalGrid.children[1].classList.add("active");
+showAnimal();
+
+function showAnimal(){
+  const a=animals[selectedAnimal];
+  document.getElementById("animalInfo").textContent=`Medidas usadas: ${a[0]} cm • ${a[1]} kg • perfil ${a[2]==="M"?"masculino":"feminino"}`;
+}
+function toggleP2(){
+  const m=document.getElementById("mode2").value;
+  document.getElementById("p2custom").classList.toggle("hidden",m!=="custom");
+  document.getElementById("andrezitos").classList.toggle("hidden",m!=="andrezitos");
+  document.getElementById("animalbox").classList.toggle("hidden",m!=="animal");
+}
+
+function getP2(){
+  const mode=document.getElementById("mode2").value;
+  if(mode==="andrezitos") return {h:170,w:70,s:"M",name:"Andrezitos"};
+  if(mode==="animal"){
+    const a=animals[selectedAnimal];
+    return {h:a[0],w:a[1],s:a[2],name:selectedAnimal};
+  }
+  return {
+    h:+document.getElementById("h2").value,
+    w:+document.getElementById("w2").value,
+    s:document.getElementById("s2").value,
+    name:"Pessoa 2"
+  };
+}
+
+function physicalScore(p, other){
+  // Modelo recreativo: massa ajuda em controle, altura em alcance,
+  // e proximidade de massa favorece algumas entradas/viradas.
+  const mass = Math.sqrt(p.w/other.w);
+  const height = 1 + (p.h-other.h)/500;
+  const bmiLike = p.w/(p.h*p.h)*10000;
+  const compact = 1 + Math.max(-.06, Math.min(.06,(22-bmiLike)/100));
+  return mass*height*compact;
+}
+
+function simulate(){
+  const p1={h:+h1.value,w:+w1.value,s:s1.value,name:"Pessoa 1"};
+  const p2=getP2();
+  const e1=+document.getElementById("e1").value;
+  const e2=+document.getElementById("e2").value;
+
+  if(!p1.h||!p1.w||!p2.h||!p2.w){alert("Preencha todas as medidas.");return;}
+
+  let a1=physicalScore(p1,p2)*e1;
+  let a2=physicalScore(p2,p1)*e2;
+
+  // Pequena influência de sexo apenas como fator estatístico abstrato.
+  // Não é uma regra fisiológica universal.
+  if(p1.s==="M") a1*=1.02;
+  if(p2.s==="M") a2*=1.02;
+
+  // Alto vs baixo: duas situações simuladas e depois combinadas.
+  const high1=a1*(1 + Math.min(.08, Math.max(-.05,(p1.h-p2.h)/1000)));
+  const high2=a2*(1 + Math.min(.08, Math.max(-.05,(p2.h-p1.h)/1000)));
+  const low1=a1*(1 + Math.min(.07, Math.max(-.05,(p2.h-p1.h)/1200)));
+  const low2=a2*(1 + Math.min(.07, Math.max(-.05,(p1.h-p2.h)/1200)));
+
+  const total1=high1*0.5+low1*0.5;
+  const total2=high2*0.5+low2*0.5;
+  const prob1=total1/(total1+total2);
+  const prob2=1-prob1;
+
+  document.getElementById("result").classList.remove("hidden");
+  document.getElementById("bar1").style.width=(prob1*100)+"%";
+  document.getElementById("bar2").style.width=(prob2*100)+"%";
+  document.getElementById("score1").textContent=`Pessoa 1: ${Math.round(prob1*100)}%`;
+  document.getElementById("score2").textContent=`${p2.name}: ${Math.round(prob2*100)}%`;
+
+  const winner1=prob1>=prob2;
+  document.getElementById("winner").textContent=winner1
+    ? "🏆 Pessoa 1 teria vantagem na simulação"
+    : `🏆 ${p2.name} teria vantagem na simulação`;
+
+  const massAdv = p1.w===p2.w ? "praticamente igual" : (p1.w>p2.w ? "Pessoa 1" : p2.name);
+  const heightAdv = p1.h===p2.h ? "praticamente igual" : (p1.h>p2.h ? "Pessoa 1" : p2.name);
+  const techAdv = e1===e2 ? "empatada" : (e1>e2 ? "Pessoa 1" : p2.name);
+
+  document.getElementById("mass").textContent=massAdv;
+  document.getElementById("reach").textContent=heightAdv;
+  document.getElementById("tech").textContent=techAdv;
+
+  const lines=[];
+  lines.push(`<b>Como a simulação chegou ao resultado:</b>`);
+  lines.push(`A massa corporal considerada foi de <b>${p1.w} kg</b> contra <b>${p2.w} kg</b>. Em uma virada de judô, maior massa pode aumentar a capacidade de resistir ao deslocamento, mas isso não substitui técnica.`);
+  lines.push(`Na altura, foram considerados <b>${p1.h} cm</b> contra <b>${p2.h} cm</b>. Uma pessoa mais alta pode ter mais alcance, enquanto uma pessoa mais baixa pode apresentar vantagens mecânicas em determinadas entradas e mudanças de centro de massa.`);
+  lines.push(`A experiência informada foi incorporada como fator de técnica: <b>${e1.toFixed(2)}</b> para a Pessoa 1 e <b>${e2.toFixed(2)}</b> para ${p2.name}.`);
+  lines.push(`O simulador separa a situação em <b>golpes altos</b> e <b>golpes baixos</b>, calcula uma vantagem para cada cenário e combina os dois em partes iguais.`);
+  if(winner1){
+    lines.push(`<b>Resultado:</b> a combinação desses fatores deu vantagem para a Pessoa 1. Isso significa apenas que, dentro das regras matemáticas desta simulação, ela acumulou mais vantagem. Uma luta real poderia terminar de forma completamente diferente.`);
+  }else{
+    lines.push(`<b>Resultado:</b> a combinação desses fatores deu vantagem para ${p2.name}. Isso significa apenas que, dentro das regras matemáticas desta simulação, ${p2.name} acumulou mais vantagem. Uma luta real poderia terminar de forma completamente diferente.`);
+  }
+  document.getElementById("explanation").innerHTML=lines.join("<br><br>");
+  document.getElementById("result").scrollIntoView({behavior:"smooth"});
+}
+</script>
+</body>
+</html>
