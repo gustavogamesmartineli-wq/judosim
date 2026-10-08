@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JudoSim • Simulador de Virada</title>
+<title>CombatSim AI • Ultimate Expansion</title>
 <style>
 *{box-sizing:border-box}
 body{
@@ -11,116 +11,211 @@ body{
   min-height:100vh;padding:24px;
 }
 .container{max-width:1100px;margin:auto}
-h1{margin:0 0 8px;font-size:clamp(28px,5vw,48px)}
-.sub{color:#aeb9d6;margin-bottom:24px}
+.header-flex{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;margin-bottom:20px}
+h1{margin:0;font-size:clamp(28px,5vw,44px)}
+.sub{color:#aeb9d6;margin-bottom:20px}
+
+/* Botões dos Mini-Games */
+.game-buttons{display:flex;gap:10px;flex-wrap:wrap}
+.btn-game{
+  background:linear-gradient(135deg,#00c853,#b2ff59);color:#052400;
+  font-weight:900;padding:10px 16px;border:0;border-radius:12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;font-size:14px;
+  box-shadow:0 4px 15px rgba(0,200,83,0.25);transition:transform 0.2s
+}
+.btn-game.blue{background:linear-gradient(135deg,#00b0ff,#80d8ff);color:#002b4d}
+.btn-game.purple{background:linear-gradient(135deg,#aa00ff,#ea80fc);color:#31004a}
+.btn-game:hover{transform:scale(1.05);filter:brightness(1.1)}
+
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .card{
   background:#121a2e;border:1px solid #263452;border-radius:18px;padding:20px;
   box-shadow:0 10px 30px #0004
 }
 .card h2{margin-top:0}
-label{display:block;color:#b9c4df;font-size:14px;margin:13px 0 6px}
+label{display:block;color:#b9c4df;font-size:13px;margin:12px 0 5px}
 input,select{
-  width:100%;padding:12px;border-radius:10px;border:1px solid #344363;
-  background:#0c1325;color:#fff;font-size:15px;outline:none
+  width:100%;padding:11px;border-radius:10px;border:1px solid #344363;
+  background:#0c1325;color:#fff;font-size:14px;outline:none
 }
 input:focus,select:focus{border-color:#6ea8ff}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-button{
-  width:100%;margin-top:20px;padding:15px;border:0;border-radius:12px;
+button.simulate-btn{
+  width:100%;margin-top:20px;padding:16px;border:0;border-radius:12px;
   background:linear-gradient(135deg,#4f8cff,#7a5cff);color:white;font-weight:800;
-  font-size:16px;cursor:pointer
+  font-size:17px;cursor:pointer;transition:transform 0.1s ease
 }
-button:hover{filter:brightness(1.1)}
-.hidden{display:none}
+button.simulate-btn:hover{filter:brightness(1.1);transform:scale(1.01)}
+.hidden{display:none !important}
 .result{margin-top:20px}
-.winner{
-  font-size:28px;font-weight:900;text-align:center;margin:5px 0 16px
-}
-.bar{height:18px;background:#27324c;border-radius:99px;overflow:hidden;display:flex}
-.p1bar{background:#4f8cff;height:100%}.p2bar{background:#ff5577;height:100%}
+.winner{font-size:26px;font-weight:900;text-align:center;margin:5px 0 16px}
+.bar{height:20px;background:#27324c;border-radius:99px;overflow:hidden;display:flex}
+.p1bar{background:#4f8cff;height:100%;transition:width 0.4s ease}.p2bar{background:#ff5577;height:100%;transition:width 0.4s ease}
 .legend{display:flex;justify-content:space-between;margin-top:7px;font-size:14px;color:#cbd4e9}
 .explain{
   margin-top:18px;line-height:1.65;color:#d8def0;background:#0d1528;
   border:1px solid #263452;border-radius:14px;padding:16px
 }
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}
 .stat{background:#0d1528;border-radius:12px;padding:12px;text-align:center}
-.stat b{display:block;font-size:20px;margin-top:4px}
+.stat b{display:block;font-size:14px;margin-top:4px;color:#6ea8ff}
 .note{font-size:12px;color:#8492b2;margin-top:14px;line-height:1.5}
-.animalGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+
+.animalGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;max-height:220px;overflow-y:auto;padding-right:4px}
 .animal{
-  padding:10px 5px;border:1px solid #33415f;background:#0d1528;
-  border-radius:10px;color:white;cursor:pointer;text-align:center
+  padding:9px 4px;border:1px solid #33415f;background:#0d1528;
+  border-radius:10px;color:white;cursor:pointer;text-align:center;font-size:12px
 }
 .animal.active{border-color:#6ea8ff;background:#162443}
-@media(max-width:750px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.animalGrid{grid-template-columns:1fr 1fr}}
+.style-box{background:#16223d;border:1px solid #33456e;padding:15px;border-radius:14px;margin-bottom:20px}
+
+/* Modais de Jogos */
+.modal{
+  position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,8,18,0.85);
+  display:flex;justify-content:center;align-items:center;z-index:999;backdrop-filter:blur(5px)
+}
+.modal-content{
+  background:#121a2e;border:2px solid #263452;border-radius:20px;padding:22px;
+  text-align:center;position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.8);max-width:420px;width:90%
+}
+.close-modal{
+  position:absolute;top:15px;right:20px;font-size:24px;color:#aaa;cursor:pointer;
+  background:none;border:none;outline:none;line-height:1
+}
+.close-modal:hover{color:#fff}
+#snakeCanvas{background:#0a0f1d;border:2px solid #344363;border-radius:10px;margin-top:10px}
+
+.reflex-box{
+  width:100%;height:180px;border-radius:14px;margin-top:15px;display:flex;
+  justify-content:center;align-items:center;font-size:20px;font-weight:bold;
+  cursor:pointer;user-select:none;transition:background 0.2s
+}
+.reflex-wait{background:#d32f2f;color:white}
+.reflex-go{background:#388e3c;color:white}
+.reflex-result{background:#1976d2;color:white}
+
+@media(max-width:750px){
+  .grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}
+  .animalGrid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🥋 JudoSim</h1>
-  <div class="sub">Simulador fictício de uma virada no judô usando características físicas e fatores de luta.</div>
+  <div class="header-flex">
+    <div>
+      <h1>⚔️ CombatSim AI</h1>
+      <div class="sub">Simulador de combate biomecânico, predadores e físicas do ambiente.</div>
+    </div>
+    <div class="game-buttons">
+      <button class="btn-game" onclick="openSnakeModal()">🐍 Snake</button>
+      <button class="btn-game blue" onclick="openReflexModal()">⚡ Reflexos</button>
+      <button class="btn-game purple" onclick="rollDiceEvent()">🎲 Evento Surpresa</button>
+    </div>
+  </div>
+
+  <div class="style-box">
+    <div class="row">
+      <div>
+        <label>🥊 Estilo e Regras da Luta</label>
+        <select id="fightStyle">
+          <option value="judo">🥋 Judô (Foco em Projeção e Equilíbrio)</option>
+          <option value="bjj">🥋 Jiu-Jitsu (Foco em Chão e Alavancas)</option>
+          <option value="muaythai">🥊 Muay Thai / Kickboxing (Foco em Golpes e Clinch)</option>
+          <option value="boxing">🥊 Boxe (Apenas Punhos e Esquiva)</option>
+          <option value="mma">🤼 MMA / Sem Regras (Mordidas e Garras Liberadas)</option>
+        </select>
+      </div>
+      <div>
+        <label>🏟️ Terreno de Combate</label>
+        <select id="terrain">
+          <option value="dry">🏟️ Tatame / Octógono (Padrão Humano)</option>
+          <option value="shallow_water">🌊 Água Rasa (Vantagem para Anfíbios/Predadores)</option>
+          <option value="mud">🪵 Lama / Terreno Irregular (Perca de Tração)</option>
+          <option value="confined">🚪 Espaço Confinado (Sem Espaço para Esquiva)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <div>
+        <label>🌤️ Clima / Visibilidade</label>
+        <select id="weather">
+          <option value="clear">☀️ Sol / Dia Aberto (Condições Normais)</option>
+          <option value="rain">🌧️ Chuva Intensa (Piso Escorregadio)</option>
+          <option value="snow">❄️ Tempestade de Neve (Lentidão Geral)</option>
+          <option value="night">🌙 Noite Absoluta (Vantagem Predadores Noturnos)</option>
+        </select>
+      </div>
+      <div>
+        <label>🔥 Estado de Adrenalina</label>
+        <select id="adrenaline">
+          <option value="normal">Calmo / Controlado</option>
+          <option value="high">Adrenalina Alta (+20% Ataque)</option>
+          <option value="frenzy">Fúria Total / Sobrevivência (+40% Força, -Técnica)</option>
+        </select>
+      </div>
+    </div>
+  </div>
 
   <div class="grid">
     <section class="card">
-      <h2>👤 Pessoa 1</h2>
+      <h2>👤 Combatente 1</h2>
       <div class="row">
-        <div><label>Altura (cm)</label><input id="h1" type="number" min="80" max="250" value="170"></div>
-        <div><label>Peso (kg)</label><input id="w1" type="number" min="20" max="300" value="70"></div>
+        <div><label>Altura (cm)</label><input id="h1" type="number" min="80" max="250" value="175"></div>
+        <div><label>Peso (kg)</label><input id="w1" type="number" min="20" max="300" value="75"></div>
       </div>
       <label>Sexo</label>
       <select id="s1"><option value="M">Masculino</option><option value="F">Feminino</option></select>
-      <label>Experiência no judô</label>
+      <label>Nível na Modalidade</label>
       <select id="e1">
-        <option value="0.85">Nenhuma</option>
-        <option value="0.94">Iniciante</option>
-        <option value="1.00" selected>Intermediário</option>
-        <option value="1.08">Avançado</option>
-        <option value="1.15">Competidor</option>
+        <option value="0.80">Leigo Total</option>
+        <option value="0.95">Praticante Recreativo</option>
+        <option value="1.05" selected>Graduado / Intermediário</option>
+        <option value="1.20">Atleta Avançado</option>
+        <option value="1.35">Campeão Profissional</option>
       </select>
     </section>
 
     <section class="card">
-      <h2>👤 Pessoa 2</h2>
-      <label>Tipo de adversário</label>
+      <h2>👤 Combatente 2</h2>
+      <label>Tipo de Oponente</label>
       <select id="mode2" onchange="toggleP2()">
-        <option value="custom">Personalizado</option>
+        <option value="custom">Humano Personalizado</option>
         <option value="andrezitos">Andrezitos</option>
-        <option value="animal">Animal</option>
+        <option value="animal">Fauna Expandida & Predadores</option>
       </select>
 
       <div id="p2custom">
         <div class="row">
-          <div><label>Altura (cm)</label><input id="h2" type="number" min="80" max="300" value="175"></div>
-          <div><label>Peso (kg)</label><input id="w2" type="number" min="20" max="500" value="75"></div>
+          <div><label>Altura (cm)</label><input id="h2" type="number" min="80" max="300" value="180"></div>
+          <div><label>Peso (kg)</label><input id="w2" type="number" min="20" max="500" value="80"></div>
         </div>
         <label>Sexo</label>
         <select id="s2"><option value="M">Masculino</option><option value="F">Feminino</option></select>
       </div>
 
       <div id="andrezitos" class="hidden">
-        <div class="explain">🧍 <b>Andrezitos</b><br>170 cm • 70 kg • Masculino</div>
+        <div class="explain">🧍 <b>Andrezitos</b><br>170 cm • 70 kg • 160 PSI de Mordida humana básica.</div>
       </div>
 
       <div id="animalbox" class="hidden">
-        <label>Escolha um animal</label>
+        <label>Selecione a Espécie</label>
         <div class="animalGrid" id="animals"></div>
         <div id="animalInfo" class="note"></div>
       </div>
 
-      <label>Experiência no judô</label>
+      <label>Nível na Modalidade / Instinto</label>
       <select id="e2">
-        <option value="0.85">Nenhuma</option>
-        <option value="0.94">Iniciante</option>
-        <option value="1.00" selected>Intermediário</option>
-        <option value="1.08">Avançado</option>
-        <option value="1.15">Competidor</option>
+        <option value="0.80">Leigo / Instinto Doméstico</option>
+        <option value="0.95">Praticante / Territorial</option>
+        <option value="1.05" selected>Intermediário / Caçador Habitual</option>
+        <option value="1.20">Atleta Avançado / Predador Alfa</option>
+        <option value="1.35">Campeão / Predador Apex Extremo</option>
       </select>
     </section>
   </div>
 
-  <button onclick="simulate()">⚡ SIMULAR A VIRADA</button>
+  <button class="simulate-btn" onclick="simulate()">⚡ SIMULAR COMBATE REALISTA</button>
 
   <section id="result" class="card result hidden">
     <div class="winner" id="winner"></div>
@@ -128,138 +223,338 @@ button:hover{filter:brightness(1.1)}
     <div class="legend"><span id="score1"></span><span id="score2"></span></div>
 
     <div class="stats">
-      <div class="stat">Massa<b id="mass"></b></div>
-      <div class="stat">Alcance/altura<b id="reach"></b></div>
-      <div class="stat">Técnica<b id="tech"></b></div>
+      <div class="stat">Vantagem Massa<b id="mass"></b></div>
+      <div class="stat">Alcance<b id="reach"></b></div>
+      <div class="stat">Mordida (PSI)<b id="bite"></b></div>
+      <div class="stat">Domínio Técnico<b id="tech"></b></div>
     </div>
 
     <div class="explain" id="explanation"></div>
     <div class="note">
-      ⚠️ Isto é uma simulação recreativa. Peso, altura e sexo não permitem determinar
-      com precisão quem venceria uma luta real. Animais também são apenas personagens
-      fictícios do simulador, não recomendações para lutar com eles.
+      ⚠️ A inteligência descritiva analisa variáveis biomecânicas, terreno, clima e pressão dentária em PSI para fins recreativos.
     </div>
   </section>
 </div>
 
+<!-- Modal Snake Game -->
+<div id="snakeModal" class="modal hidden" onclick="closeOnBackdrop(event, 'snakeModal')">
+  <div class="modal-content">
+    <button type="button" class="close-modal" onclick="closeModal('snakeModal')">&times;</button>
+    <h2>🐍 Snake Clássico</h2>
+    <div>Pontuação: <span id="snakeScore" style="color:#00c853;font-weight:bold;">0</span></div>
+    <canvas id="snakeCanvas" width="300" height="300"></canvas>
+    <div style="margin-top:10px;font-size:12px;color:#8492b2">Use as setas do teclado para controlar.</div>
+  </div>
+</div>
+
+<!-- Modal Reflexos -->
+<div id="reflexModal" class="modal hidden" onclick="closeOnBackdrop(event, 'reflexModal')">
+  <div class="modal-content">
+    <button type="button" class="close-modal" onclick="closeModal('reflexModal')">&times;</button>
+    <h2>⚡ Teste de Reflexos</h2>
+    <p style="font-size:13px;color:#aeb9d6;">Clique no quadrado assim que ele ficar verde!</p>
+    <div id="reflexBox" class="reflex-box reflex-wait" onclick="handleReflexClick()">Clique para Iniciar</div>
+  </div>
+</div>
+
 <script>
+// Tabela Expandida de Animais
 const animals = {
-  "🐕 Cão grande": [70, 40, "M"], 
-  "🐺 Lobo": [80, 65, "M"],
-  "🦌 Veado": [110, 100, "M"],
-  "🐗 Javali": [100, 90, "M"],
-  "🦘 Canguru": [150, 85, "M"],
-  "🦍 Gorila": [170, 160, "M"],
-  "🐻 Urso": [180, 250, "M"],
-  "🐴 Cavalo": [160, 500, "M"]
+  "🐕 Pitbull": [60, 30, "M", 235],
+  "🐺 Lobo-Cinzento": [85, 50, "M", 400],
+  "🐆 Guepardo": [80, 55, "M", 450],
+  "🐆 Onça-Pintada": [90, 95, "M", 1350],
+  "🦁 Leão-Africano": [120, 190, "M", 650],
+  "🐗 Javali": [100, 110, "M", 500],
+  "🦅 Águia-Real": [40, 6, "F", 150],
+  "🦎 Dragão de Komodo": [50, 80, "M", 600],
+  "🐍 Sucuri / Anaconda": [30, 130, "F", 900],
+  "🦍 Gorila Silverback": [170, 180, "M", 1300],
+  "🐻 Urso Polar": [230, 450, "M", 1200],
+  "🐊 Jacaré-Açú": [60, 300, "M", 2120],
+  "🦈 Tubarão-Branco": [150, 600, "M", 4000],
+  "🐘 Elefante-Africano": [320, 5000, "M", 700],
+  "🦖 T-Rex (Pré-Hist.)": [380, 7000, "M", 12800]
 };
-let selectedAnimal = "🐺 Lobo";
+let selectedAnimal = "🐺 Lobo-Cinzento";
 
 const animalGrid = document.getElementById("animals");
 for(const [name, v] of Object.entries(animals)){
-  const b=document.createElement("button");
-  b.type="button"; b.className="animal"; b.textContent=name;
-  b.onclick=()=>{selectedAnimal=name;document.querySelectorAll(".animal").forEach(x=>x.classList.remove("active"));b.classList.add("active");showAnimal()};
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "animal"; b.textContent = name;
+  b.onclick = () => {
+    selectedAnimal = name;
+    document.querySelectorAll(".animal").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    showAnimal();
+  };
   animalGrid.appendChild(b);
 }
-animalGrid.children[1].classList.add("active");
+if(animalGrid.children[1]) animalGrid.children[1].classList.add("active");
 showAnimal();
 
 function showAnimal(){
-  const a=animals[selectedAnimal];
-  document.getElementById("animalInfo").textContent=`Medidas usadas: ${a[0]} cm • ${a[1]} kg • perfil ${a[2]==="M"?"masculino":"feminino"}`;
+  const a = animals[selectedAnimal];
+  if(a) document.getElementById("animalInfo").textContent = `${a[0]} cm • ${a[1]} kg • Mordida: ${a[3]} PSI`;
 }
+
 function toggleP2(){
-  const m=document.getElementById("mode2").value;
-  document.getElementById("p2custom").classList.toggle("hidden",m!=="custom");
-  document.getElementById("andrezitos").classList.toggle("hidden",m!=="andrezitos");
-  document.getElementById("animalbox").classList.toggle("hidden",m!=="animal");
+  const m = document.getElementById("mode2").value;
+  document.getElementById("p2custom").classList.toggle("hidden", m !== "custom");
+  document.getElementById("andrezitos").classList.toggle("hidden", m !== "andrezitos");
+  document.getElementById("animalbox").classList.toggle("hidden", m !== "animal");
 }
 
 function getP2(){
-  const mode=document.getElementById("mode2").value;
-  if(mode==="andrezitos") return {h:170,w:70,s:"M",name:"Andrezitos"};
-  if(mode==="animal"){
-    const a=animals[selectedAnimal];
-    return {h:a[0],w:a[1],s:a[2],name:selectedAnimal};
+  const mode = document.getElementById("mode2").value;
+  if(mode === "andrezitos") return {h:170, w:70, s:"M", bite:162, name:"Andrezitos", isAnimal: false};
+  if(mode === "animal"){
+    const a = animals[selectedAnimal];
+    return {h:a[0], w:a[1], s:a[2], bite:a[3], name:selectedAnimal, isAnimal: true};
   }
   return {
-    h:+document.getElementById("h2").value,
-    w:+document.getElementById("w2").value,
-    s:document.getElementById("s2").value,
-    name:"Pessoa 2"
+    h: +document.getElementById("h2").value,
+    w: +document.getElementById("w2").value,
+    s: document.getElementById("s2").value,
+    bite: 162,
+    name: "Combatente 2",
+    isAnimal: false
   };
 }
 
-function physicalScore(p, other){
-  // Modelo recreativo: massa ajuda em controle, altura em alcance,
-  // e proximidade de massa favorece algumas entradas/viradas.
-  const mass = Math.sqrt(p.w/other.w);
-  const height = 1 + (p.h-other.h)/500;
-  const bmiLike = p.w/(p.h*p.h)*10000;
-  const compact = 1 + Math.max(-.06, Math.min(.06,(22-bmiLike)/100));
-  return mass*height*compact;
+function generateAIText(p1, p2, winner, style, terrain, weather, prob1, prob2) {
+  const terrainsText = {
+    dry: "um tatame/ringue seco e ideal para mobilidade humana",
+    shallow_water: "água rasa, que compromete a base bípede e favorece tração de predadores",
+    mud: "terreno enlameado, onde a tração é reduzida drasticamente",
+    confined: "um espaço confinado, impossibilitando esquivas a longa distância"
+  };
+
+  const weatherText = {
+    clear: "sob condições climáticas normais",
+    rain: "sob chuva forte e solo extremamente escorregadio",
+    snow: "em um ambiente de frio congelante e neve pesada",
+    night: "em escuridão quase total, favorecendo instintos noturnos"
+  };
+
+  const intro = `O combate ocorreu em <b>${terrainsText[terrain]}</b>, ${weatherText[weather]} sob as regras de <b>${style.toUpperCase()}</b>.`;
+  const biteText = p2.bite > 500 
+    ? `A força de mordida de <b>${p2.bite} PSI</b> do ${p2.name} representou uma ameaça de fratura mecânica imediata.`
+    : `A pressão de mordida de <b>${p2.bite} PSI</b> somou-se ao fator de dano contínuo.`;
+
+  const details = [
+    `• Massa Crítica: <b>${p1.w}kg</b> (Combatente 1) vs <b>${p2.w}kg</b> (${p2.name}).`,
+    `• Porte/Alcance: <b>${p1.h}cm</b> vs <b>${p2.h}cm</b>.`,
+    `• ${biteText}`
+  ];
+
+  const winP1 = [
+    `A técnica apurada do Combatente 1 permitiu-lhe explorar falhas biomecânicas do oponente e assegurar a vitória.`,
+    `Utilizando alavancas estratégicas e controlo da distância, o Combatente 1 anulou a agressividade bruta.`
+  ];
+
+  const winP2 = [
+    `A vantagem física e o impacto esmagador do ${p2.name} sobrecarregaram completamente a defesa do Combatente 1.`,
+    `O ${p2.name} dominou as entradas com o seu peso e letalidade natural, liquidando a disputa.`
+  ];
+
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  return `
+    ${intro}<br><br>
+    <b>Métricas Biomecânicas Consideradas:</b><br>
+    ${details.join('<br>')}<br><br>
+    <b>Veredicto do Simulador:</b><br>
+    ${winner ? pick(winP1) : pick(winP2)}
+    <br><br><i>Probabilidade final: ${Math.round(prob1*100)}% vs ${Math.round(prob2*100)}%</i>
+  `;
 }
 
 function simulate(){
-  const p1={h:+h1.value,w:+w1.value,s:s1.value,name:"Pessoa 1"};
-  const p2=getP2();
-  const e1=+document.getElementById("e1").value;
-  const e2=+document.getElementById("e2").value;
+  const fightStyle = document.getElementById("fightStyle").value;
+  const terrain = document.getElementById("terrain").value;
+  const weather = document.getElementById("weather").value;
+  const adrenaline = document.getElementById("adrenaline").value;
 
-  if(!p1.h||!p1.w||!p2.h||!p2.w){alert("Preencha todas as medidas.");return;}
+  const p1 = { h: +document.getElementById("h1").value, w: +document.getElementById("w1").value, s: document.getElementById("s1").value, bite: 162, name: "Combatente 1", isAnimal: false };
+  const p2 = getP2();
+  let e1 = +document.getElementById("e1").value;
+  let e2 = +document.getElementById("e2").value;
 
-  let a1=physicalScore(p1,p2)*e1;
-  let a2=physicalScore(p2,p1)*e2;
+  if(!p1.h || !p1.w || !p2.h || !p2.w){alert("Preencha todas as medidas.");return;}
 
-  // Pequena influência de sexo apenas como fator estatístico abstrato.
-  // Não é uma regra fisiológica universal.
-  if(p1.s==="M") a1*=1.02;
-  if(p2.s==="M") a2*=1.02;
+  // Adrenalina
+  let adMult1 = 1.0;
+  if(adrenaline === 'high') adMult1 = 1.2;
+  if(adrenaline === 'frenzy') { adMult1 = 1.4; e1 *= 0.85; }
 
-  // Alto vs baixo: duas situações simuladas e depois combinadas.
-  const high1=a1*(1 + Math.min(.08, Math.max(-.05,(p1.h-p2.h)/1000)));
-  const high2=a2*(1 + Math.min(.08, Math.max(-.05,(p2.h-p1.h)/1000)));
-  const low1=a1*(1 + Math.min(.07, Math.max(-.05,(p2.h-p1.h)/1200)));
-  const low2=a2*(1 + Math.min(.07, Math.max(-.05,(p1.h-p2.h)/1200)));
+  let styleWeights = { mass: 1.0, reach: 1.0, bite: 0.1, tech: 1.0 };
+  if(fightStyle === 'judo') styleWeights = { mass: 1.2, reach: 0.8, bite: 0.05, tech: 1.4 };
+  if(fightStyle === 'bjj') styleWeights = { mass: 1.1, reach: 0.7, bite: 0.2, tech: 1.6 };
+  if(fightStyle === 'muaythai') styleWeights = { mass: 1.0, reach: 1.4, bite: 0.1, tech: 1.2 };
+  if(fightStyle === 'boxing') styleWeights = { mass: 1.0, reach: 1.5, bite: 0.0, tech: 1.3 };
+  if(fightStyle === 'mma') styleWeights = { mass: 1.3, reach: 1.1, bite: 0.8, tech: 1.1 };
 
-  const total1=high1*0.5+low1*0.5;
-  const total2=high2*0.5+low2*0.5;
-  const prob1=total1/(total1+total2);
-  const prob2=1-prob1;
+  let terrainMult1 = 1.0, terrainMult2 = 1.0;
+  if(terrain === 'shallow_water' && p2.isAnimal) terrainMult2 *= 1.3;
+  if(terrain === 'mud') { terrainMult1 *= 0.85; terrainMult2 *= 0.9; }
+  if(terrain === 'confined') { styleWeights.reach *= 0.5; styleWeights.mass *= 1.3; }
+
+  // Clima
+  if(weather === 'night' && p2.isAnimal) terrainMult2 *= 1.25;
+  if(weather === 'rain') terrainMult1 *= 0.9;
+
+  const massRatio1 = Math.pow(p1.w / p2.w, 0.6) * styleWeights.mass;
+  const massRatio2 = Math.pow(p2.w / p1.w, 0.6) * styleWeights.mass;
+
+  const reach1 = (1 + (p1.h - p2.h)/400) * styleWeights.reach;
+  const reach2 = (1 + (p2.h - p1.h)/400) * styleWeights.reach;
+
+  const biteBonus1 = (p1.bite / 160) * styleWeights.bite;
+  const biteBonus2 = (p2.bite / 160) * styleWeights.bite;
+
+  let total1 = (massRatio1 + reach1 + biteBonus1) * (e1 * styleWeights.tech) * terrainMult1 * adMult1;
+  let total2 = (massRatio2 + reach2 + biteBonus2) * (e2 * styleWeights.tech) * terrainMult2;
+
+  if(p2.isAnimal && (fightStyle === 'mma' || fightStyle === 'bjj')) total2 *= 1.3;
+
+  const prob1 = total1 / (total1 + total2);
+  const prob2 = 1 - prob1;
 
   document.getElementById("result").classList.remove("hidden");
-  document.getElementById("bar1").style.width=(prob1*100)+"%";
-  document.getElementById("bar2").style.width=(prob2*100)+"%";
-  document.getElementById("score1").textContent=`Pessoa 1: ${Math.round(prob1*100)}%`;
-  document.getElementById("score2").textContent=`${p2.name}: ${Math.round(prob2*100)}%`;
+  document.getElementById("bar1").style.width = (prob1 * 100) + "%";
+  document.getElementById("bar2").style.width = (prob2 * 100) + "%";
+  document.getElementById("score1").textContent = `Combatente 1: ${Math.round(prob1 * 100)}%`;
+  document.getElementById("score2").textContent = `${p2.name}: ${Math.round(prob2 * 100)}%`;
 
-  const winner1=prob1>=prob2;
-  document.getElementById("winner").textContent=winner1
-    ? "🏆 Pessoa 1 teria vantagem na simulação"
-    : `🏆 ${p2.name} teria vantagem na simulação`;
+  const winner1 = prob1 >= prob2;
+  document.getElementById("winner").textContent = winner1
+    ? "🏆 Combatente 1 leva Vantagem no Combate"
+    : `🏆 ${p2.name} leva Vantagem no Combate`;
 
-  const massAdv = p1.w===p2.w ? "praticamente igual" : (p1.w>p2.w ? "Pessoa 1" : p2.name);
-  const heightAdv = p1.h===p2.h ? "praticamente igual" : (p1.h>p2.h ? "Pessoa 1" : p2.name);
-  const techAdv = e1===e2 ? "empatada" : (e1>e2 ? "Pessoa 1" : p2.name);
+  document.getElementById("mass").textContent = p1.w === p2.w ? "Empate" : (p1.w > p2.w ? "Combatente 1" : p2.name);
+  document.getElementById("reach").textContent = p1.h === p2.h ? "Empate" : (p1.h > p2.h ? "Combatente 1" : p2.name);
+  document.getElementById("bite").textContent = `${p1.bite} vs ${p2.bite}`;
+  document.getElementById("tech").textContent = e1 === e2 ? "Empate" : (e1 > e2 ? "Combatente 1" : p2.name);
 
-  document.getElementById("mass").textContent=massAdv;
-  document.getElementById("reach").textContent=heightAdv;
-  document.getElementById("tech").textContent=techAdv;
+  const styleNames = { judo: "Judô", bjj: "Jiu-Jitsu", muaythai: "Muay Thai", boxing: "Boxe", mma: "MMA / Sem Regras" };
+  document.getElementById("explanation").innerHTML = generateAIText(p1, p2, winner1, styleNames[fightStyle], terrain, weather, prob1, prob2);
 
-  const lines=[];
-  lines.push(`<b>Como a simulação chegou ao resultado:</b>`);
-  lines.push(`A massa corporal considerada foi de <b>${p1.w} kg</b> contra <b>${p2.w} kg</b>. Em uma virada de judô, maior massa pode aumentar a capacidade de resistir ao deslocamento, mas isso não substitui técnica.`);
-  lines.push(`Na altura, foram considerados <b>${p1.h} cm</b> contra <b>${p2.h} cm</b>. Uma pessoa mais alta pode ter mais alcance, enquanto uma pessoa mais baixa pode apresentar vantagens mecânicas em determinadas entradas e mudanças de centro de massa.`);
-  lines.push(`A experiência informada foi incorporada como fator de técnica: <b>${e1.toFixed(2)}</b> para a Pessoa 1 e <b>${e2.toFixed(2)}</b> para ${p2.name}.`);
-  lines.push(`O simulador separa a situação em <b>golpes altos</b> e <b>golpes baixos</b>, calcula uma vantagem para cada cenário e combina os dois em partes iguais.`);
-  if(winner1){
-    lines.push(`<b>Resultado:</b> a combinação desses fatores deu vantagem para a Pessoa 1. Isso significa apenas que, dentro das regras matemáticas desta simulação, ela acumulou mais vantagem. Uma luta real poderia terminar de forma completamente diferente.`);
-  }else{
-    lines.push(`<b>Resultado:</b> a combinação desses fatores deu vantagem para ${p2.name}. Isso significa apenas que, dentro das regras matemáticas desta simulação, ${p2.name} acumulou mais vantagem. Uma luta real poderia terminar de forma completamente diferente.`);
+  document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+}
+
+// GESTÃO DE MODAIS
+function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+function closeOnBackdrop(e, id) { if(e.target.id === id) closeModal(id); }
+
+// EVENTO ALEATÓRIO (DADO DA SORTE)
+function rollDiceEvent() {
+  const events = [
+    "💥 GOLPE CRÍTICO: O Combatente 1 acertou um contra-ataque perfeito!",
+    "⚠️ TROPEÇÃO: O piso instável fez o Combatente 2 perder o equilíbrio!",
+    "🤼 EMBOSCADA: O oponente iniciou com bote surpresa!",
+    "🛡️ DEFESA PERFEITA: O ataque inicial foi totalmente bloqueado!"
+  ];
+  alert(events[Math.floor(Math.random() * events.length)]);
+}
+
+// MINI-GAME: SNAKE
+let snakeInterval, canvas, ctx, grid = 15;
+let snake = { x: 150, y: 150, dx: grid, dy: 0, cells: [], maxCells: 4 };
+let apple = { x: 60, y: 60 }, score = 0;
+
+function openSnakeModal() {
+  document.getElementById("snakeModal").classList.remove("hidden");
+  if(!canvas) { canvas = document.getElementById("snakeCanvas"); ctx = canvas.getContext("2d"); }
+  resetSnake();
+  if(snakeInterval) clearInterval(snakeInterval);
+  snakeInterval = setInterval(snakeLoop, 1000 / 12);
+}
+
+function resetSnake() {
+  snake.x = 150; snake.y = 150; snake.cells = []; snake.maxCells = 4;
+  snake.dx = grid; snake.dy = 0; score = 0;
+  document.getElementById("snakeScore").textContent = score;
+  apple.x = Math.floor(Math.random() * 20) * grid;
+  apple.y = Math.floor(Math.random() * 20) * grid;
+}
+
+function snakeLoop() {
+  if(!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  snake.x += snake.dx; snake.y += snake.dy;
+
+  if (snake.x < 0) snake.x = canvas.width - grid;
+  else if (snake.x >= canvas.width) snake.x = 0;
+  if (snake.y < 0) snake.y = canvas.height - grid;
+  else if (snake.y >= canvas.height) snake.y = 0;
+
+  snake.cells.unshift({ x: snake.x, y: snake.y });
+  if (snake.cells.length > snake.maxCells) snake.cells.pop();
+
+  ctx.fillStyle = '#ff5577';
+  ctx.fillRect(apple.x, apple.y, grid - 1, grid - 1);
+
+  ctx.fillStyle = '#00c853';
+  snake.cells.forEach((cell, index) => {
+    ctx.fillRect(cell.x, cell.y, grid - 1, grid - 1);
+    if (cell.x === apple.x && cell.y === apple.y) {
+      snake.maxCells++; score += 10;
+      document.getElementById("snakeScore").textContent = score;
+      apple.x = Math.floor(Math.random() * 20) * grid;
+      apple.y = Math.floor(Math.random() * 20) * grid;
+    }
+    for (let i = index + 1; i < snake.cells.length; i++) {
+      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) resetSnake();
+    }
+  });
+}
+
+document.addEventListener('keydown', function (e) {
+  if (document.getElementById("snakeModal").classList.contains("hidden")) return;
+  if (e.key === "Escape") { closeModal("snakeModal"); return; }
+  if (e.which === 37 && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
+  else if (e.which === 38 && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
+  else if (e.which === 39 && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
+  else if (e.which === 40 && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+});
+
+// MINI-GAME: REFLEXOS
+let reflexState = "idle", reflexStartTime, reflexTimeout;
+function openReflexModal() {
+  document.getElementById("reflexModal").classList.remove("hidden");
+  resetReflex();
+}
+
+function resetReflex() {
+  const box = document.getElementById("reflexBox");
+  box.className = "reflex-box reflex-wait";
+  box.textContent = "Clique para Iniciar";
+  reflexState = "idle";
+  if(reflexTimeout) clearTimeout(reflexTimeout);
+}
+
+function handleReflexClick() {
+  const box = document.getElementById("reflexBox");
+  if(reflexState === "idle") {
+    reflexState = "waiting";
+    box.textContent = "Aguarde o verde...";
+    reflexTimeout = setTimeout(() => {
+      reflexState = "ready";
+      box.className = "reflex-box reflex-go";
+      box.textContent = "CLIQUE AGORA!";
+      reflexStartTime = Date.now();
+    }, Math.floor(Math.random() * 3000) + 1500);
+  } else if(reflexState === "waiting") {
+    clearTimeout(reflexTimeout);
+    box.textContent = "Clicou muito cedo! Clique para tentar de novo.";
+    reflexState = "idle";
+  } else if(reflexState === "ready") {
+    const diff = Date.now() - reflexStartTime;
+    box.className = "reflex-box reflex-result";
+    box.textContent = `Tempo: ${diff} ms! Clique para reiniciar.`;
+    reflexState = "idle";
   }
-  document.getElementById("explanation").innerHTML=lines.join("<br><br>");
-  document.getElementById("result").scrollIntoView({behavior:"smooth"});
 }
 </script>
 </body>
